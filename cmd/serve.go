@@ -1,13 +1,15 @@
-// cmd/serve.go is the entry point for the babble CLI. The //go:embed directive
-// must live in this file (package cmd) so that the embed path "web" resolves
-// relative to this file's directory, i.e. cmd/web/.
+// cmd/serve.go is the entry point for the babble CLI. The //go:embed directives
+// must live in this file (package cmd) so that the embed paths resolve
+// relative to this file's directory, i.e. cmd/web/ and cmd/soundpacks/.
 package cmd
 
 import (
 	"embed"
 	"flag"
 	"fmt"
+	"io"
 	"io/fs"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,6 +21,9 @@ import (
 
 //go:embed all:web
 var webFS embed.FS
+
+//go:embed all:soundpacks
+var defaultPacksFS embed.FS
 
 // Execute is the top-level entry point called from main. It parses the
 // subcommand from os.Args and dispatches accordingly.
@@ -46,10 +51,13 @@ func Execute() error {
 func runServe(port int, noOpen bool) error {
 	home, _ := os.UserHomeDir()
 	watchPath := filepath.Join(home, ".claude", "projects")
+	packsDir := filepath.Join(home, ".config", "babble", "soundpacks")
+
+	ensureDefaultPack(packsDir)
 
 	staticFS, _ := fs.Sub(webFS, "web")
 
-	srv := server.New(port, staticFS)
+	srv := server.New(port, staticFS, packsDir)
 
 	mgr := sessions.NewManager(watchPath, srv.EventCh())
 	go mgr.Start()
@@ -60,6 +68,68 @@ func runServe(port int, noOpen bool) error {
 	}
 
 	return srv.Start()
+}
+
+// ensureDefaultPack copies the embedded default sound pack into
+// packsDir/default/ if it does not already exist. Errors are logged but do
+// not prevent the server from starting — a missing default pack is
+// non-fatal.
+func ensureDefaultPack(packsDir string) {
+	destManifest := filepath.Join(packsDir, "default", "pack.json")
+	if _, err := os.Stat(destManifest); err == nil {
+		// Already present; nothing to do.
+		return
+	}
+
+	destDir := filepath.Join(packsDir, "default")
+	if err := os.MkdirAll(destDir, 0o755); err != nil {
+		log.Printf("soundpacks: create %s: %v", destDir, err)
+		return
+	}
+
+	// Walk the embedded soundpacks/default/ tree and copy every file.
+	srcRoot := "soundpacks/default"
+	err := fs.WalkDir(defaultPacksFS, srcRoot, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		// Compute the destination path relative to srcRoot.
+		rel, relErr := filepath.Rel(srcRoot, path)
+		if relErr != nil {
+			return relErr
+		}
+		dest := filepath.Join(destDir, rel)
+
+		if d.IsDir() {
+			return os.MkdirAll(dest, 0o755)
+		}
+
+		return copyEmbeddedFile(defaultPacksFS, path, dest)
+	})
+	if err != nil {
+		log.Printf("soundpacks: extract default pack: %v", err)
+	}
+}
+
+// copyEmbeddedFile copies a single file from an embed.FS to a destination
+// path on disk.
+func copyEmbeddedFile(fsys embed.FS, src, dest string) error {
+	in, err := fsys.Open(src)
+	if err != nil {
+		return fmt.Errorf("open embedded %s: %w", src, err)
+	}
+	defer in.Close()
+
+	out, err := os.Create(dest)
+	if err != nil {
+		return fmt.Errorf("create %s: %w", dest, err)
+	}
+	defer out.Close()
+
+	if _, err := io.Copy(out, in); err != nil {
+		return fmt.Errorf("copy %s -> %s: %w", src, dest, err)
+	}
+	return nil
 }
 
 // openBrowser attempts to open url in the default system browser.
