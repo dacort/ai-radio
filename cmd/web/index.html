@@ -1,18 +1,57 @@
 <!DOCTYPE html>
-<html>
-<head><title>Babble</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Babble</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
 <body>
-  <h1>Babble</h1>
-  <p>Connecting to event stream...</p>
-  <pre id="log"></pre>
-  <script>
-    const ws = new WebSocket(`ws://${location.host}/ws`);
-    const log = document.getElementById('log');
-    ws.onmessage = (e) => {
-      const ev = JSON.parse(e.data);
-      const line = `${ev.timestamp} [${ev.session}] ${ev.category} ${ev.event} ${ev.detail}\n`;
-      log.textContent = line + log.textContent;
-    };
-  </script>
+
+<!-- Audio enable overlay (autoplay policy) -->
+<div id="audio-overlay" role="dialog" aria-modal="true" aria-label="Enable audio">
+  <div class="overlay-icon" aria-hidden="true">🔊</div>
+  <div class="overlay-title">Babble</div>
+  <div class="overlay-sub">
+    Data sonification for Claude Code.<br>
+    Click to enable audio and connect to the event stream.
+  </div>
+  <button class="overlay-btn" type="button">Enable Audio</button>
+</div>
+
+<!-- Main application shell -->
+<div id="app">
+
+  <!-- Top bar -->
+  <header id="topbar" role="banner">
+    <span class="logo" aria-label="Babble">🔊 Babble</span>
+    <span class="spacer"></span>
+    <label for="pack-select" class="sr-only">Sound pack</label>
+    <select id="pack-select" title="Sound pack" aria-label="Sound pack">
+      <option value="default">Default</option>
+    </select>
+  </header>
+
+  <!-- Session sidebar -->
+  <nav id="sidebar" aria-label="Sessions">
+    <div id="sidebar-label">Sessions</div>
+    <div id="session-list" role="list" aria-label="Active sessions"></div>
+  </nav>
+
+  <!-- Event stream -->
+  <main id="event-stream" aria-label="Event stream" aria-live="polite" aria-relevant="additions">
+    <!-- Event rows are prepended here by app.js -->
+  </main>
+
+  <!-- Bottom bar — per-category volume controls -->
+  <footer id="bottombar" role="contentinfo" aria-label="Volume controls">
+    <div id="volume-controls" role="group" aria-label="Category volumes">
+      <!-- Sliders are built by app.js -->
+    </div>
+  </footer>
+
+</div>
+
+<script type="module" src="/js/app.js"></script>
 </body>
 </html>
