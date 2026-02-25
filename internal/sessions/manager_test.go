@@ -252,6 +252,101 @@ func TestManagerSkipsSkipEvents(t *testing.T) {
 	}
 }
 
+// TestManagerTailsSubagentFiles verifies that the manager picks up JSONL files
+// in {projectDir}/{sessionId}/subagents/ directories.
+func TestManagerTailsSubagentFiles(t *testing.T) {
+	root := t.TempDir()
+
+	// Create a project directory with a session and subagent.
+	projectDir := filepath.Join(root, "myapp")
+	subagentDir := filepath.Join(projectDir, "session-abc", "subagents")
+	if err := os.MkdirAll(subagentDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	// Create a subagent JSONL file.
+	agentFile := filepath.Join(subagentDir, "agent-xyz.jsonl")
+	f, err := os.Create(agentFile)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	f.Close()
+
+	eventCh := make(chan *events.BabbleEvent, 32)
+	m := sessions.NewManager(root, eventCh)
+
+	go m.Start() //nolint:errcheck
+	defer m.Stop()
+
+	time.Sleep(200 * time.Millisecond)
+
+	// Write an event to the subagent file.
+	f, err = os.OpenFile(agentFile, os.O_WRONLY|os.O_APPEND, 0o644)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	f.WriteString(bashLine("/home/user/myapp")) //nolint:errcheck
+	f.Close()
+
+	ev := receiveWithin(t, eventCh, func(ev *events.BabbleEvent) bool {
+		return ev.Event == "Bash"
+	}, 2*time.Second)
+
+	if ev == nil {
+		t.Fatal("timed out waiting for Bash event from subagent file")
+	}
+	if ev.Session != "myapp" {
+		t.Errorf("session = %q, want %q", ev.Session, "myapp")
+	}
+	if !ev.IsSubagent {
+		t.Error("expected IsSubagent=true for event from subagent file")
+	}
+}
+
+// TestManagerTailsNewSubagentFile verifies that when a new subagent JSONL file
+// appears after the manager is running, it gets tailed.
+func TestManagerTailsNewSubagentFile(t *testing.T) {
+	root := t.TempDir()
+
+	projectDir := filepath.Join(root, "myapp")
+	if err := os.MkdirAll(projectDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	eventCh := make(chan *events.BabbleEvent, 32)
+	m := sessions.NewManager(root, eventCh)
+
+	go m.Start() //nolint:errcheck
+	defer m.Stop()
+
+	time.Sleep(200 * time.Millisecond)
+
+	// Create the session and subagent directories while manager is running.
+	subagentDir := filepath.Join(projectDir, "session-new", "subagents")
+	if err := os.MkdirAll(subagentDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	time.Sleep(200 * time.Millisecond)
+
+	// Create a new subagent file.
+	agentFile := filepath.Join(subagentDir, "agent-new.jsonl")
+	f, err := os.Create(agentFile)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	f.WriteString(bashLine("/home/user/myapp")) //nolint:errcheck
+	f.Close()
+
+	ev := receiveWithin(t, eventCh, func(ev *events.BabbleEvent) bool {
+		return ev.Event == "Bash"
+	}, 3*time.Second)
+
+	if ev == nil {
+		t.Fatal("timed out waiting for Bash event from new subagent file")
+	}
+}
+
 // TestManagerDoesNotTailSameFileTwice ensures that if a file is discovered
 // both via glob and via fsnotify, it is only tailed once.
 func TestManagerDoesNotTailSameFileTwice(t *testing.T) {

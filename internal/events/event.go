@@ -39,12 +39,13 @@ var ErrSkipEvent = errors.New("skip event")
 
 // BabbleEvent is the normalised representation of a single log line.
 type BabbleEvent struct {
-	Session   string   `json:"session"`
-	SessionID string   `json:"sessionId"`
-	Category  Category `json:"category"`
-	Event     string   `json:"event"`
-	Detail    string   `json:"detail"`
-	Timestamp string   `json:"timestamp"`
+	Session    string   `json:"session"`
+	SessionID  string   `json:"sessionId"`
+	Category   Category `json:"category"`
+	Event      string   `json:"event"`
+	Detail     string   `json:"detail"`
+	Timestamp  string   `json:"timestamp"`
+	IsSubagent bool     `json:"isSubagent,omitempty"`
 }
 
 // -----------------------------------------------------------------------------
@@ -79,7 +80,8 @@ type rawContent struct {
 
 // rawProgressData is the data object inside progress events.
 type rawProgressData struct {
-	Type string `json:"type"`
+	Type    string          `json:"type"`
+	Message json.RawMessage `json:"message"` // non-nil when relaying subagent activity
 }
 
 // -----------------------------------------------------------------------------
@@ -159,6 +161,12 @@ func ParseLine(line []byte) (*BabbleEvent, error) {
 		return parseUser(ev, raw.Message)
 
 	case "progress":
+		// Progress events with data.message are the main session relaying
+		// subagent activity. We skip these because we tail subagent JSONL
+		// files directly, which avoids double-counting.
+		if raw.Data != nil && raw.Data.Message != nil {
+			return nil, ErrSkipEvent
+		}
 		ev.Category = CategoryMeta
 		ev.Event = "progress"
 		if raw.Data != nil && raw.Data.Type != "" {

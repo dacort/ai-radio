@@ -321,6 +321,7 @@ function addEventRow(event) {
 
   const row = document.createElement('div');
   row.className = `event-row cat-${event.category}`;
+  if (event.isSubagent) row.classList.add('subagent');
   if (isFiltered) row.classList.add('hidden');
   row.dataset.session = event.session;
 
@@ -331,7 +332,7 @@ function addEventRow(event) {
 
   row.innerHTML = `
     <span class="ev-time">${time}</span>
-    <span class="ev-session" style="color:${sess.color}">${escapeHtml(event.session)}</span>
+    <span class="ev-session" style="color:${sess.color}">${event.isSubagent ? '↳ ' : ''}${escapeHtml(event.session)}</span>
     <span class="ev-category">${icon} ${escapeHtml(event.category)}</span>
     <span class="ev-event">${escapeHtml(event.event)}</span>
     <span class="ev-detail" title="${escapeHtml(event.detail ?? '')}">${detail}</span>

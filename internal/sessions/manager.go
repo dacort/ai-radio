@@ -25,6 +25,9 @@ import (
 //	watchPath/
 //	  <project-name>/
 //	    <session-id>.jsonl
+//	    <session-id>/
+//	      subagents/
+//	        agent-<id>.jsonl
 //	    ...
 //
 // Manager is safe to use from multiple goroutines — Stop may be called
@@ -123,7 +126,8 @@ func (m *Manager) discoverExisting(watcher *fsnotify.Watcher) error {
 }
 
 // watchProjectDir adds a project directory to the watcher and tails any
-// existing JSONL files within it.
+// existing JSONL files within it, including subagent files nested under
+// {sessionId}/subagents/.
 //
 // seekEnd controls whether existing files are tailed from their current end
 // (true = startup discovery; false = newly created directory).
@@ -133,9 +137,55 @@ func (m *Manager) watchProjectDir(watcher *fsnotify.Watcher, dir string, seekEnd
 		return
 	}
 
+	// Tail top-level JSONL files (main session logs).
 	matches, err := filepath.Glob(filepath.Join(dir, "*.jsonl"))
 	if err != nil {
 		log.Printf("sessions: glob %s: %v", dir, err)
+		return
+	}
+	for _, path := range matches {
+		m.startTailing(path, seekEnd)
+	}
+
+	// Also discover and watch subagent directories:
+	// {projectDir}/{sessionId}/subagents/*.jsonl
+	m.discoverSubagents(watcher, dir, seekEnd)
+}
+
+// discoverSubagents finds existing {sessionId}/subagents/ directories within
+// a project dir and watches them for JSONL files.
+func (m *Manager) discoverSubagents(watcher *fsnotify.Watcher, projectDir string, seekEnd bool) {
+	// Look for {sessionId}/ directories (named like UUIDs).
+	entries, err := os.ReadDir(projectDir)
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		sessionDir := filepath.Join(projectDir, entry.Name())
+		subagentDir := filepath.Join(sessionDir, "subagents")
+
+		// Watch the session dir so we notice when subagents/ is created.
+		watcher.Add(sessionDir)
+
+		// If subagents/ already exists, watch it and tail its files.
+		if isDir(subagentDir) {
+			m.watchSubagentDir(watcher, subagentDir, seekEnd)
+		}
+	}
+}
+
+// watchSubagentDir watches a subagents/ directory and tails any JSONL files in it.
+func (m *Manager) watchSubagentDir(watcher *fsnotify.Watcher, dir string, seekEnd bool) {
+	if err := watcher.Add(dir); err != nil {
+		log.Printf("sessions: watch subagents %s: %v", dir, err)
+		return
+	}
+
+	matches, err := filepath.Glob(filepath.Join(dir, "*.jsonl"))
+	if err != nil {
 		return
 	}
 	for _, path := range matches {
@@ -148,11 +198,25 @@ func (m *Manager) handleFSEvent(watcher *fsnotify.Watcher, ev fsnotify.Event) {
 	path := ev.Name
 
 	switch {
-	// A new directory was created — it could be a new project dir.
+	// A new directory was created.
 	case ev.Op.Has(fsnotify.Create) && isDir(path):
-		// New directories are not yet watched; watch them and read new files
-		// from their beginning (seekEnd=false).
-		m.watchProjectDir(watcher, path, false)
+		base := filepath.Base(path)
+		if base == "subagents" {
+			// A subagents/ directory appeared inside a session dir.
+			m.watchSubagentDir(watcher, path, false)
+		} else if filepath.Base(filepath.Dir(path)) == m.watchDirBase() {
+			// A new project directory appeared directly under watchPath.
+			m.watchProjectDir(watcher, path, false)
+		} else {
+			// Could be a {sessionId}/ directory inside a project dir.
+			// Watch it so we notice when subagents/ is created inside.
+			watcher.Add(path)
+			// Check if subagents/ already exists (MkdirAll can create both at once).
+			subagentsDir := filepath.Join(path, "subagents")
+			if isDir(subagentsDir) {
+				m.watchSubagentDir(watcher, subagentsDir, false)
+			}
+		}
 
 	// A new JSONL file appeared.
 	case ev.Op.Has(fsnotify.Create) && isJSONL(path):
@@ -167,6 +231,11 @@ func (m *Manager) handleFSEvent(watcher *fsnotify.Watcher, ev fsnotify.Event) {
 		m.startTailing(path, false)
 		m.notifyWrite(path)
 	}
+}
+
+// watchDirBase returns the base name of the watchPath for directory matching.
+func (m *Manager) watchDirBase() string {
+	return filepath.Base(m.watchPath)
 }
 
 // startTailing begins tailing path in a new goroutine. If path is already
@@ -184,7 +253,8 @@ func (m *Manager) startTailing(path string, seekEnd bool) {
 	m.tailing[path] = notifyCh
 	m.mu.Unlock()
 
-	go m.tail(path, seekEnd, notifyCh)
+	isSubagent := strings.Contains(path, "/subagents/")
+	go m.tail(path, seekEnd, notifyCh, isSubagent)
 }
 
 // notifyWrite wakes up the tailer goroutine for path, if one exists.
@@ -205,7 +275,7 @@ func (m *Manager) notifyWrite(path string) {
 // tail opens path and reads new lines as they are appended. When seekEnd is
 // true the cursor is positioned at the current EOF before reading begins;
 // when false the file is read from the start.
-func (m *Manager) tail(path string, seekEnd bool, notifyCh <-chan struct{}) {
+func (m *Manager) tail(path string, seekEnd bool, notifyCh <-chan struct{}, isSubagent bool) {
 	defer func() {
 		m.mu.Lock()
 		delete(m.tailing, path)
@@ -262,6 +332,8 @@ func (m *Manager) tail(path string, seekEnd bool, notifyCh <-chan struct{}) {
 			log.Printf("sessions: parse %s: %v", path, parseErr)
 			continue
 		}
+
+		ev.IsSubagent = isSubagent
 
 		select {
 		case m.eventCh <- ev:

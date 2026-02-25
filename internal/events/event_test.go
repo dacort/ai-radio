@@ -352,3 +352,27 @@ func TestParseWebFetch(t *testing.T) {
 		t.Errorf("detail = %q, want %q", ev.Detail, "https://pkg.go.dev/net/http")
 	}
 }
+
+// TestParseProgressWithSubagentMessageSkipped verifies that progress events
+// relaying subagent activity (data.message present) are skipped to avoid
+// double-counting with direct subagent file tailing.
+func TestParseProgressWithSubagentMessageSkipped(t *testing.T) {
+	line := []byte(`{"type":"progress","sessionId":"abc","cwd":"/tmp","data":{"message":{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Bash"}]}}}}`)
+	_, err := events.ParseLine(line)
+	if !errors.Is(err, events.ErrSkipEvent) {
+		t.Errorf("expected ErrSkipEvent for progress with subagent message, got %v", err)
+	}
+}
+
+// TestParseProgressWithoutMessageNotSkipped verifies that regular progress
+// events (like hook_progress) are NOT skipped.
+func TestParseProgressWithoutMessageNotSkipped(t *testing.T) {
+	line := []byte(`{"type":"progress","sessionId":"abc","cwd":"/tmp","data":{"type":"hook_progress"}}`)
+	ev, err := events.ParseLine(line)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if ev.Category != events.CategoryMeta {
+		t.Errorf("category = %q, want %q", ev.Category, events.CategoryMeta)
+	}
+}
