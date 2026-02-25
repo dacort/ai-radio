@@ -18,12 +18,13 @@ type Server struct {
 	hub      *hub.Hub
 	eventCh  chan *events.BabbleEvent
 	staticFS fs.FS
+	packsDir string
 }
 
-// New creates a Server that listens on port and serves static files from
-// staticFS. It allocates a buffered event channel (capacity 100) and
-// constructs the Hub that reads from it.
-func New(port int, staticFS fs.FS) *Server {
+// New creates a Server that listens on port, serves static files from
+// staticFS, and serves sound packs from packsDir. It allocates a buffered
+// event channel (capacity 100) and constructs the Hub that reads from it.
+func New(port int, staticFS fs.FS, packsDir string) *Server {
 	eventCh := make(chan *events.BabbleEvent, 100)
 	h := hub.New(eventCh)
 	return &Server{
@@ -31,6 +32,7 @@ func New(port int, staticFS fs.FS) *Server {
 		hub:      h,
 		eventCh:  eventCh,
 		staticFS: staticFS,
+		packsDir: packsDir,
 	}
 }
 
@@ -46,8 +48,13 @@ func (s *Server) EventCh() chan<- *events.BabbleEvent {
 func (s *Server) Start() error {
 	go s.hub.Run()
 
+	packsHandler := NewPacksHandler(s.packsDir)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", s.hub.HandleWS)
+	mux.HandleFunc("GET /api/packs", packsHandler.HandleList)
+	mux.HandleFunc("GET /api/packs/{name}/manifest", packsHandler.HandleManifest)
+	mux.Handle("/sounds/", packsHandler.SoundsFS())
 	mux.Handle("/", http.FileServer(http.FS(s.staticFS)))
 
 	addr := fmt.Sprintf(":%d", s.port)
