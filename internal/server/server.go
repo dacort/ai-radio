@@ -14,25 +14,28 @@ import (
 
 // Server holds the HTTP server configuration and the components it connects.
 type Server struct {
-	port     int
-	hub      *hub.Hub
-	eventCh  chan *events.BabbleEvent
-	staticFS fs.FS
-	packsDir string
+	port       int
+	hub        *hub.Hub
+	eventCh    chan *events.BabbleEvent
+	staticFS   fs.FS
+	packsDir   string
+	configPath string
 }
 
 // New creates a Server that listens on port, serves static files from
-// staticFS, and serves sound packs from packsDir. It allocates a buffered
-// event channel (capacity 100) and constructs the Hub that reads from it.
-func New(port int, staticFS fs.FS, packsDir string) *Server {
+// staticFS, serves sound packs from packsDir, and persists user configuration
+// to configPath. It allocates a buffered event channel (capacity 100) and
+// constructs the Hub that reads from it.
+func New(port int, staticFS fs.FS, packsDir string, configPath string) *Server {
 	eventCh := make(chan *events.BabbleEvent, 100)
 	h := hub.New(eventCh)
 	return &Server{
-		port:     port,
-		hub:      h,
-		eventCh:  eventCh,
-		staticFS: staticFS,
-		packsDir: packsDir,
+		port:       port,
+		hub:        h,
+		eventCh:    eventCh,
+		staticFS:   staticFS,
+		packsDir:   packsDir,
+		configPath: configPath,
 	}
 }
 
@@ -49,9 +52,12 @@ func (s *Server) Start() error {
 	go s.hub.Run()
 
 	packsHandler := NewPacksHandler(s.packsDir)
+	configHandler := NewConfigHandler(s.configPath)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", s.hub.HandleWS)
+	mux.HandleFunc("GET /api/config", configHandler.HandleGet)
+	mux.HandleFunc("PUT /api/config", configHandler.HandleUpdate)
 	mux.HandleFunc("GET /api/packs", packsHandler.HandleList)
 	mux.HandleFunc("GET /api/packs/{name}/manifest", packsHandler.HandleManifest)
 	mux.Handle("/sounds/", packsHandler.SoundsFS())

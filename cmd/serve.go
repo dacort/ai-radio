@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/dacort/babble/internal/config"
 	"github.com/dacort/babble/internal/server"
 	"github.com/dacort/babble/internal/sessions"
 )
@@ -52,12 +53,13 @@ func runServe(port int, noOpen bool) error {
 	home, _ := os.UserHomeDir()
 	watchPath := filepath.Join(home, ".claude", "projects")
 	packsDir := filepath.Join(home, ".config", "babble", "soundpacks")
+	configPath := config.DefaultPath()
 
 	ensureDefaultPack(packsDir)
 
 	staticFS, _ := fs.Sub(webFS, "web")
 
-	srv := server.New(port, staticFS, packsDir)
+	srv := server.New(port, staticFS, packsDir, configPath)
 
 	mgr := sessions.NewManager(watchPath, srv.EventCh())
 	go mgr.Start()
