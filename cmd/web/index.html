@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head><title>Babble</title></head>
+<body>
+  <h1>Babble</h1>
+  <p>Connecting to event stream...</p>
+  <pre id="log"></pre>
+  <script>
+    const ws = new WebSocket(`ws://${location.host}/ws`);
+    const log = document.getElementById('log');
+    ws.onmessage = (e) => {
+      const ev = JSON.parse(e.data);
+      const line = `${ev.timestamp} [${ev.session}] ${ev.category} ${ev.event} ${ev.detail}\n`;
+      log.textContent = line + log.textContent;
+    };
+  </script>
+</body>
+</html>
