@@ -208,10 +208,18 @@ function connectWebSocket() {
 // Event handling
 // ---------------------------------------------------------------------------
 
+/** Per-category meter levels (0–1), decayed each frame. */
+const meterLevels = {};
+
 function handleEvent(event) {
   updateSession(event);
   addEventRow(event);
   audio.play(event);
+
+  // Spike the meter for this category.
+  if (event.category) {
+    meterLevels[event.category] = 1.0;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -402,7 +410,12 @@ function buildVolumeControls() {
       audio.setCategoryVolume(cat, parseFloat(slider.value));
     });
 
+    const meter = document.createElement('div');
+    meter.className = `vol-meter meter-${cat}`;
+    meter.innerHTML = '<div class="vol-meter-fill"></div>';
+
     wrapper.appendChild(label);
+    wrapper.appendChild(meter);
     wrapper.appendChild(slider);
     container.appendChild(wrapper);
   }
@@ -499,3 +512,78 @@ function truncate(str, maxLen) {
   if (!str || str.length <= maxLen) return str ?? '';
   return str.slice(0, maxLen) + '…';
 }
+
+// ---------------------------------------------------------------------------
+// VU meters + mini oscilloscope
+// ---------------------------------------------------------------------------
+
+/** Decays meter levels and updates the meter fill elements each frame. */
+function animateMeters() {
+  requestAnimationFrame(animateMeters);
+
+  // Decay all meter levels.
+  for (const cat of CATEGORIES) {
+    const level = meterLevels[cat] ?? 0;
+    meterLevels[cat] = Math.max(0, level - 0.03); // ~0.5s full decay at 60fps
+    const fill = document.querySelector(`.meter-${cat} .vol-meter-fill`);
+    if (fill) fill.style.width = `${meterLevels[cat] * 100}%`;
+  }
+
+  // Draw mini oscilloscope.
+  drawMiniScope();
+}
+
+let scopeCanvas, scopeCtx;
+
+function drawMiniScope() {
+  if (!audio.ctx) return;
+
+  if (!scopeCanvas) {
+    scopeCanvas = document.getElementById('mini-scope');
+    if (!scopeCanvas) return;
+    scopeCtx = scopeCanvas.getContext('2d');
+
+    // Create analyser node lazily.
+    audio._scopeAnalyser = audio.ctx.createAnalyser();
+    audio._scopeAnalyser.fftSize = 512;
+    audio._scopeAnalyser.smoothingTimeConstant = 0.7;
+    audio.masterGain.connect(audio._scopeAnalyser);
+  }
+
+  const analyser = audio._scopeAnalyser;
+  if (!analyser) return;
+
+  const w = scopeCanvas.width;
+  const h = scopeCanvas.height;
+  const data = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(data);
+
+  scopeCtx.fillStyle = '#0f1117';
+  scopeCtx.fillRect(0, 0, w, h);
+
+  // Center line.
+  scopeCtx.strokeStyle = 'rgba(48,54,61,0.5)';
+  scopeCtx.lineWidth = 1;
+  scopeCtx.beginPath();
+  scopeCtx.moveTo(0, h / 2);
+  scopeCtx.lineTo(w, h / 2);
+  scopeCtx.stroke();
+
+  // Waveform.
+  scopeCtx.strokeStyle = '#00e5ff';
+  scopeCtx.shadowColor = 'rgba(0,229,255,0.4)';
+  scopeCtx.shadowBlur = 2;
+  scopeCtx.lineWidth = 1.5;
+  scopeCtx.beginPath();
+  const step = w / data.length;
+  for (let i = 0; i < data.length; i++) {
+    const x = i * step;
+    const y = ((data[i] + 1) / 2) * h;
+    i === 0 ? scopeCtx.moveTo(x, y) : scopeCtx.lineTo(x, y);
+  }
+  scopeCtx.stroke();
+  scopeCtx.shadowBlur = 0;
+}
+
+// Start the animation loop.
+requestAnimationFrame(animateMeters);

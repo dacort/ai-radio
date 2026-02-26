@@ -97,6 +97,16 @@ body {
   flex: 1;
 }
 
+/* Mini oscilloscope in top bar */
+#mini-scope {
+  height: 28px;
+  width: 200px;
+  border-radius: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
 #pack-select {
   background: var(--bg-raised);
   color: var(--text);
@@ -375,6 +385,38 @@ body {
   gap: 2px;
   min-width: 52px;
 }
+
+/* Per-category VU meter bar */
+.vol-meter {
+  width: 42px;
+  height: 3px;
+  background: var(--border);
+  border-radius: 1.5px;
+  overflow: hidden;
+  position: relative;
+}
+
+.vol-meter-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0%;
+  border-radius: 1.5px;
+  transition: width 0.06s ease-out;
+}
+
+/* Per-category meter colours */
+.meter-ambient  .vol-meter-fill { background: var(--col-ambient); }
+.meter-init     .vol-meter-fill { background: var(--col-init); }
+.meter-action   .vol-meter-fill { background: var(--col-action); }
+.meter-read     .vol-meter-fill { background: var(--col-read); }
+.meter-write    .vol-meter-fill { background: var(--col-write); }
+.meter-network  .vol-meter-fill { background: var(--col-network); }
+.meter-success  .vol-meter-fill { background: var(--col-success); }
+.meter-warn     .vol-meter-fill { background: var(--col-warn); }
+.meter-error    .vol-meter-fill { background: var(--col-error); }
+.meter-meta     .vol-meter-fill { background: var(--col-meta); }
 
 .vol-master {
   margin-left: 8px;

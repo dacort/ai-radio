@@ -8,7 +8,7 @@ import (
 	"github.com/dacort/babble/cmd"
 )
 
-const version = "v0.2.0"
+const version = "v0.3.0"
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "-version" {
