@@ -2,16 +2,16 @@
   "name": "Pac-Man",
   "description": "Waka-waka your way through code. 1980 Namco arcade classic.",
   "author": "Namco (sounds), babble (pack)",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "categories": {
-    "ambient":  { "files": ["pacman-beginning.wav"],    "loop": true,  "volume": 0.08 },
-    "action":   { "files": ["pacman-chomp.wav"],        "loop": false, "volume": 0.4  },
-    "read":     { "files": ["pacman-eatfruit.wav"],     "loop": false, "volume": 0.4  },
-    "write":    { "files": ["pacman-extrapac.wav"],     "loop": false, "volume": 0.5  },
-    "network":  { "files": ["pacman-intermission.wav"], "loop": false, "volume": 0.3  },
-    "success":  { "files": ["pacman-eatghost.wav"],     "loop": false, "volume": 0.6  },
-    "warn":     { "files": ["pacman-eatfruit.wav"],     "loop": false, "volume": 0.5  },
-    "error":    { "files": ["pacman-death.wav"],        "loop": false, "volume": 0.8  },
-    "meta":     { "files": ["pacman-chomp.wav"],        "loop": false, "volume": 0.2  }
+    "ambient":  { "files": ["pacman-beginning.wav"],    "loop": true,  "volume": 0.06, "crossfadeMs": 2000 },
+    "action":   { "files": ["pacman-chomp.wav"],        "loop": false, "volume": 0.25 },
+    "read":     { "files": ["pacman-eatfruit.wav"],     "loop": false, "volume": 0.15 },
+    "write":    { "files": ["pacman-extrapac.wav"],     "loop": false, "volume": 0.25 },
+    "network":  { "files": ["pacman-intermission.wav"], "loop": false, "volume": 0.20 },
+    "success":  { "files": ["pacman-eatghost.wav"],     "loop": false, "volume": 0.50 },
+    "warn":     { "files": ["pacman-eatfruit.wav"],     "loop": false, "volume": 0.45 },
+    "error":    { "files": ["pacman-death.wav"],        "loop": false, "volume": 0.60 },
+    "meta":     { "files": ["pacman-chomp.wav"],        "loop": false, "volume": 0.10 }
   }
 }

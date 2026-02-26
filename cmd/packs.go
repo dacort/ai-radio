@@ -125,6 +125,8 @@ var packRegistry = []remotePack{
 		slug:        "mortalkombat",
 		displayName: "Mortal Kombat",
 		sounds: map[string]string{
+			// Stage music (downloads.khinsider.com — direct MP3)
+			"mk1-courtyard.mp3": "https://nu.vgmtreasurechest.com/soundtracks/mortal-kombat-arcade-gamerip-1992/nizackvv/04.%20The%20Courtyard.mp3",
 			// Announcer (mortalkombatwarehouse.com — direct MP3)
 			"mk1-fight.mp3":         "https://www.mortalkombatwarehouse.com/mk1/sounds/announcer/mk1-00368.mp3",
 			"mk1-fatality.mp3":      "https://www.mortalkombatwarehouse.com/mk1/sounds/announcer/mk1-00375.mp3",

@@ -2,17 +2,17 @@
   "name": "Mortal Kombat",
   "description": "FINISH HIM! Classic MK1 arcade sounds — punches, fatalities, and GET OVER HERE.",
   "author": "Midway Games (sounds), babble (pack)",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "categories": {
-    "ambient":  { "files": ["mk1-music-cue1.mp3"],               "loop": true,  "volume": 0.06 },
-    "init":     { "files": ["mk1-fight.mp3"],                     "loop": false, "volume": 0.7  },
-    "action":   { "files": ["mk1-hit1.mp3", "mk1-hit2.mp3", "mk1-hit3.mp3"], "loop": false, "volume": 0.4  },
-    "read":     { "files": ["mk1-ui1.mp3"],                       "loop": false, "volume": 0.3  },
-    "write":    { "files": ["mk1-spear.mp3", "mk1-hit4.mp3"],     "loop": false, "volume": 0.4  },
-    "network":  { "files": ["mk1-getoverhere.mp3"],               "loop": false, "volume": 0.5  },
-    "success":  { "files": ["mk1-flawless.mp3", "mk1-excellent.mp3"], "loop": false, "volume": 0.6  },
-    "warn":     { "files": ["mk1-testyourmight.mp3", "mk1-finishhim.mp3"], "loop": false, "volume": 0.5  },
-    "error":    { "files": ["mk1-fatality.mp3", "mk1-explosion.mp3"], "loop": false, "volume": 0.7  },
-    "meta":     { "files": ["mk1-insertcoin.mp3", "mk1-ui2.mp3"], "loop": false, "volume": 0.4  }
+    "ambient":  { "files": ["mk1-courtyard.mp3"],                 "loop": true,  "volume": 0.06, "crossfadeMs": 2000 },
+    "init":     { "files": ["mk1-fight.mp3"],                     "loop": false, "volume": 0.55 },
+    "action":   { "files": ["mk1-hit1.mp3", "mk1-hit2.mp3", "mk1-hit3.mp3"], "loop": false, "volume": 0.25 },
+    "read":     { "files": ["mk1-ui1.mp3"],                       "loop": false, "volume": 0.12 },
+    "write":    { "files": ["mk1-spear.mp3", "mk1-hit4.mp3"],     "loop": false, "volume": 0.25 },
+    "network":  { "files": ["mk1-getoverhere.mp3"],               "loop": false, "volume": 0.30 },
+    "success":  { "files": ["mk1-flawless.mp3", "mk1-excellent.mp3"], "loop": false, "volume": 0.50 },
+    "warn":     { "files": ["mk1-testyourmight.mp3", "mk1-finishhim.mp3"], "loop": false, "volume": 0.45 },
+    "error":    { "files": ["mk1-fatality.mp3", "mk1-explosion.mp3"], "loop": false, "volume": 0.60 },
+    "meta":     { "files": ["mk1-insertcoin.mp3", "mk1-ui2.mp3"], "loop": false, "volume": 0.10 }
   }
 }

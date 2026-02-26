@@ -2,17 +2,17 @@
   "name": "Default",
   "description": "Built-in synthesized sounds",
   "author": "babble",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "synth": true,
   "categories": {
-    "ambient":  { "synth": "breath", "freq": 180, "duration": 0.5, "loop": false, "volume": 0.06 },
-    "action":   { "synth": "click", "freq": 800, "duration": 0.05, "loop": false, "volume": 0.4  },
-    "read":     { "synth": "sine",  "freq": 440, "duration": 0.1,  "loop": false, "volume": 0.3  },
-    "write":    { "synth": "sine",  "freq": 523, "duration": 0.15, "loop": false, "volume": 0.4  },
-    "network":  { "synth": "sine",  "freq": 660, "duration": 0.2,  "loop": false, "volume": 0.3  },
-    "success":  { "synth": "chord", "freq": 523, "duration": 0.4,  "loop": false, "volume": 0.5  },
-    "warn":     { "synth": "saw",   "freq": 330, "duration": 0.3,  "loop": false, "volume": 0.6  },
-    "error":    { "synth": "noise", "freq": 200, "duration": 0.3,  "loop": false, "volume": 0.7  },
-    "meta":     { "synth": "sine",  "freq": 880, "duration": 0.1,  "loop": false, "volume": 0.2  }
+    "ambient":  { "synth": "drone",  "freq": 110,  "duration": 0.5, "loop": true,  "volume": 0.08 },
+    "action":   { "synth": "click",  "freq": 800,  "duration": 0.05, "loop": false, "volume": 0.25 },
+    "read":     { "synth": "sine",   "freq": 440,  "duration": 0.08, "loop": false, "volume": 0.15 },
+    "write":    { "synth": "sine",   "freq": 523,  "duration": 0.12, "loop": false, "volume": 0.25 },
+    "network":  { "synth": "breath", "freq": 330,  "duration": 0.3,  "loop": false, "volume": 0.20 },
+    "success":  { "synth": "chord",  "freq": 523,  "duration": 0.4,  "loop": false, "volume": 0.50 },
+    "warn":     { "synth": "saw",    "freq": 330,  "duration": 0.3,  "loop": false, "volume": 0.50 },
+    "error":    { "synth": "noise",  "freq": 200,  "duration": 0.3,  "loop": false, "volume": 0.60 },
+    "meta":     { "synth": "click",  "freq": 660,  "duration": 0.04, "loop": false, "volume": 0.10 }
   }
 }

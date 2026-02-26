@@ -2,16 +2,16 @@
   "name": "Asteroids",
   "description": "Minimalist pulsing beats and vector blasts. 1979 Atari arcade classic.",
   "author": "Atari (sounds), babble (pack)",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "categories": {
-    "ambient":  { "files": ["beat1.wav", "beat2.wav"], "loop": true,  "volume": 0.08 },
-    "action":   { "files": ["fire.wav"],               "loop": false, "volume": 0.5  },
-    "read":     { "files": ["thrust.wav"],             "loop": false, "volume": 0.4  },
-    "write":    { "files": ["fire.wav"],               "loop": false, "volume": 0.5  },
-    "network":  { "files": ["saucersmall.wav"],        "loop": false, "volume": 0.4  },
-    "success":  { "files": ["bangsmall.wav"],          "loop": false, "volume": 0.5  },
-    "warn":     { "files": ["saucerbig.wav"],          "loop": false, "volume": 0.6  },
-    "error":    { "files": ["banglarge.wav"],          "loop": false, "volume": 0.8  },
-    "meta":     { "files": ["bangmedium.wav"],         "loop": false, "volume": 0.3  }
+    "ambient":  { "synth": "drone", "freq": 65, "loop": true, "volume": 0.06 },
+    "action":   { "files": ["fire.wav"],               "loop": false, "volume": 0.25 },
+    "read":     { "files": ["thrust.wav"],             "loop": false, "volume": 0.15 },
+    "write":    { "files": ["fire.wav"],               "loop": false, "volume": 0.25 },
+    "network":  { "files": ["saucersmall.wav"],        "loop": false, "volume": 0.25 },
+    "success":  { "files": ["bangsmall.wav"],          "loop": false, "volume": 0.45 },
+    "warn":     { "files": ["saucerbig.wav"],          "loop": false, "volume": 0.45 },
+    "error":    { "files": ["banglarge.wav"],          "loop": false, "volume": 0.60 },
+    "meta":     { "files": ["bangmedium.wav"],         "loop": false, "volume": 0.10 }
   }
 }

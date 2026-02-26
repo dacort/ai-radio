@@ -2,17 +2,17 @@
   "name": "Arcade Mix",
   "description": "Greatest hits from the golden age. Mario, Pac-Man, Space Invaders, Zelda, DK & Frogger.",
   "author": "Nintendo, Namco, Taito, Konami (sounds), babble (pack)",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "categories": {
-    "ambient":  { "files": ["smb_powerup.wav"],       "loop": true,  "volume": 0.06 },
-    "init":     { "files": ["smb_stage_clear.wav"],    "loop": false, "volume": 0.5  },
-    "action":   { "files": ["shoot.wav"],              "loop": false, "volume": 0.4  },
-    "read":     { "files": ["smb_coin.wav"],           "loop": false, "volume": 0.35 },
-    "write":    { "files": ["pacman-chomp.wav"],       "loop": false, "volume": 0.4  },
-    "network":  { "files": ["loz_secret.wav"],         "loop": false, "volume": 0.4  },
-    "success":  { "files": ["jump.wav", "smb_breakblock.wav"], "loop": false, "volume": 0.5  },
-    "warn":     { "files": ["frogger-hop.wav", "smb_warning.wav"], "loop": false, "volume": 0.5  },
-    "error":    { "files": ["smb_mariodie.wav"],       "loop": false, "volume": 0.7  },
-    "meta":     { "files": ["loz_get_item.wav"],       "loop": false, "volume": 0.4  }
+    "ambient":  { "synth": "drone", "freq": 98, "loop": true, "volume": 0.06 },
+    "init":     { "files": ["smb_stage_clear.wav"],    "loop": false, "volume": 0.45 },
+    "action":   { "files": ["shoot.wav"],              "loop": false, "volume": 0.25 },
+    "read":     { "files": ["smb_coin.wav"],           "loop": false, "volume": 0.15 },
+    "write":    { "files": ["pacman-chomp.wav"],       "loop": false, "volume": 0.25 },
+    "network":  { "files": ["loz_secret.wav"],         "loop": false, "volume": 0.25 },
+    "success":  { "files": ["jump.wav", "smb_breakblock.wav"], "loop": false, "volume": 0.45 },
+    "warn":     { "files": ["frogger-hop.wav", "smb_warning.wav"], "loop": false, "volume": 0.45 },
+    "error":    { "files": ["smb_mariodie.wav"],       "loop": false, "volume": 0.60 },
+    "meta":     { "files": ["loz_get_item.wav"],       "loop": false, "volume": 0.10 }
   }
 }

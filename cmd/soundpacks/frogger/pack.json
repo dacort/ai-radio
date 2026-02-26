@@ -2,16 +2,16 @@
   "name": "Frogger",
   "description": "Hop through your code one file at a time. 1981 Konami arcade classic.",
   "author": "Konami (sounds), babble (pack)",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "categories": {
-    "ambient":  { "files": ["frogger-music.mp3"],  "loop": true,  "volume": 0.08 },
-    "action":   { "files": ["frogger-hop.wav"],    "loop": false, "volume": 0.5  },
-    "read":     { "files": ["frogger-hop.wav"],    "loop": false, "volume": 0.4  },
-    "write":    { "files": ["frogger-coin.wav"],   "loop": false, "volume": 0.5  },
-    "network":  { "files": ["frogger-time.wav"],   "loop": false, "volume": 0.4  },
-    "success":  { "files": ["frogger-extra.wav"],  "loop": false, "volume": 0.6  },
-    "warn":     { "files": ["frogger-time.wav"],   "loop": false, "volume": 0.5  },
-    "error":    { "files": ["frogger-squash.wav"], "loop": false, "volume": 0.8  },
-    "meta":     { "files": ["frogger-plunk.wav"],  "loop": false, "volume": 0.3  }
+    "ambient":  { "files": ["frogger-music.mp3"],  "loop": true,  "volume": 0.06, "crossfadeMs": 2000 },
+    "action":   { "files": ["frogger-hop.wav"],    "loop": false, "volume": 0.25 },
+    "read":     { "files": ["frogger-hop.wav"],    "loop": false, "volume": 0.15 },
+    "write":    { "files": ["frogger-coin.wav"],   "loop": false, "volume": 0.25 },
+    "network":  { "files": ["frogger-time.wav"],   "loop": false, "volume": 0.25 },
+    "success":  { "files": ["frogger-extra.wav"],  "loop": false, "volume": 0.50 },
+    "warn":     { "files": ["frogger-time.wav"],   "loop": false, "volume": 0.45 },
+    "error":    { "files": ["frogger-squash.wav"], "loop": false, "volume": 0.60 },
+    "meta":     { "files": ["frogger-plunk.wav"],  "loop": false, "volume": 0.10 }
   }
 }

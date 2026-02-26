@@ -2,16 +2,16 @@
   "name": "Space Invaders",
   "description": "Tense rhythmic coding. 1978 Taito arcade classic.",
   "author": "Taito (sounds), babble (pack)",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "categories": {
-    "ambient":  { "files": ["fastinvader1.wav"],  "loop": true,  "volume": 0.08 },
-    "action":   { "files": ["shoot.wav"],          "loop": false, "volume": 0.5  },
-    "read":     { "files": ["fastinvader2.wav"],   "loop": false, "volume": 0.3  },
-    "write":    { "files": ["fastinvader3.wav"],   "loop": false, "volume": 0.4  },
-    "network":  { "files": ["ufo_highpitch.wav"],  "loop": false, "volume": 0.4  },
-    "success":  { "files": ["invaderkilled.wav"],  "loop": false, "volume": 0.6  },
-    "warn":     { "files": ["ufo_lowpitch.wav"],   "loop": false, "volume": 0.5  },
-    "error":    { "files": ["explosion.wav"],       "loop": false, "volume": 0.8  },
-    "meta":     { "files": ["fastinvader4.wav"],   "loop": false, "volume": 0.3  }
+    "ambient":  { "synth": "drone", "freq": 82, "loop": true, "volume": 0.06 },
+    "action":   { "files": ["shoot.wav"],          "loop": false, "volume": 0.25 },
+    "read":     { "files": ["fastinvader2.wav"],   "loop": false, "volume": 0.12 },
+    "write":    { "files": ["fastinvader3.wav"],   "loop": false, "volume": 0.25 },
+    "network":  { "files": ["ufo_highpitch.wav"],  "loop": false, "volume": 0.25 },
+    "success":  { "files": ["invaderkilled.wav"],  "loop": false, "volume": 0.50 },
+    "warn":     { "files": ["ufo_lowpitch.wav"],   "loop": false, "volume": 0.45 },
+    "error":    { "files": ["explosion.wav"],       "loop": false, "volume": 0.60 },
+    "meta":     { "files": ["fastinvader4.wav"],   "loop": false, "volume": 0.10 }
   }
 }
