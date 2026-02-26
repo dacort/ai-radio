@@ -1,0 +1,17 @@
+{
+  "name": "Space Invaders",
+  "description": "Tense rhythmic coding. 1978 Taito arcade classic.",
+  "author": "Taito (sounds), babble (pack)",
+  "version": "1.0.0",
+  "categories": {
+    "ambient":  { "files": ["fastinvader1.wav"],  "loop": true,  "volume": 0.08 },
+    "action":   { "files": ["shoot.wav"],          "loop": false, "volume": 0.5  },
+    "read":     { "files": ["fastinvader2.wav"],   "loop": false, "volume": 0.3  },
+    "write":    { "files": ["fastinvader3.wav"],   "loop": false, "volume": 0.4  },
+    "network":  { "files": ["ufo_highpitch.wav"],  "loop": false, "volume": 0.4  },
+    "success":  { "files": ["invaderkilled.wav"],  "loop": false, "volume": 0.6  },
+    "warn":     { "files": ["ufo_lowpitch.wav"],   "loop": false, "volume": 0.5  },
+    "error":    { "files": ["explosion.wav"],       "loop": false, "volume": 0.8  },
+    "meta":     { "files": ["fastinvader4.wav"],   "loop": false, "volume": 0.3  }
+  }
+}

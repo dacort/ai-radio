@@ -19,6 +19,7 @@ const RATE_WINDOW_MS = 60_000;       // events/min rolling window
 
 const CATEGORY_ICONS = {
   ambient: '💭',
+  init:    '🚀',
   action:  '💻',
   read:    '📖',
   write:   '✏️',
@@ -29,7 +30,7 @@ const CATEGORY_ICONS = {
   meta:    '⚡',
 };
 
-const CATEGORIES = ['ambient', 'action', 'read', 'write', 'network', 'success', 'warn', 'error'];
+const CATEGORIES = ['ambient', 'init', 'action', 'read', 'write', 'network', 'success', 'warn', 'error'];
 
 const SESSION_PALETTE = [
   '#60a5fa', // blue-400
@@ -118,7 +119,7 @@ async function populatePacks() {
     elPackSelect.innerHTML = '';
     for (const pack of packs) {
       const opt = document.createElement('option');
-      opt.value = pack.name.toLowerCase();
+      opt.value = pack.slug;
       opt.textContent = pack.name;
       elPackSelect.appendChild(opt);
     }
@@ -413,6 +414,33 @@ function buildVolumeControls() {
   masterWrapper.appendChild(masterLabel);
   masterWrapper.appendChild(masterSlider);
   container.appendChild(masterWrapper);
+
+  // Idle timeout slider (0–300s, default 60s).
+  const idleWrapper = document.createElement('div');
+  idleWrapper.className = 'vol-control vol-master';
+
+  const idleLabel = document.createElement('label');
+  idleLabel.className = 'vol-label';
+  idleLabel.textContent = '💤 idle 30s';
+
+  const idleSlider = document.createElement('input');
+  idleSlider.type = 'range';
+  idleSlider.min = '0';
+  idleSlider.max = '300';
+  idleSlider.step = '5';
+  idleSlider.value = '30';
+  idleSlider.className = 'vol-slider';
+  idleSlider.setAttribute('aria-label', 'idle timeout seconds');
+
+  idleSlider.addEventListener('input', () => {
+    const secs = parseInt(idleSlider.value, 10);
+    idleLabel.textContent = secs === 0 ? '💤 idle off' : `💤 idle ${secs}s`;
+    audio.setIdleTimeout(secs * 1000);
+  });
+
+  idleWrapper.appendChild(idleLabel);
+  idleWrapper.appendChild(idleSlider);
+  container.appendChild(idleWrapper);
 }
 
 // ---------------------------------------------------------------------------

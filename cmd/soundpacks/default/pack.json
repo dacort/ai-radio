@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "synth": true,
   "categories": {
-    "ambient":  { "synth": "sine",  "freq": 220, "duration": 2.0,  "loop": true,  "volume": 0.15 },
+    "ambient":  { "synth": "breath", "freq": 180, "duration": 0.5, "loop": false, "volume": 0.06 },
     "action":   { "synth": "click", "freq": 800, "duration": 0.05, "loop": false, "volume": 0.4  },
     "read":     { "synth": "sine",  "freq": 440, "duration": 0.1,  "loop": false, "volume": 0.3  },
     "write":    { "synth": "sine",  "freq": 523, "duration": 0.15, "loop": false, "volume": 0.4  },

@@ -1,0 +1,17 @@
+{
+  "name": "Donkey Kong",
+  "description": "Original 1981 Donkey Kong arcade sounds. Jumpman codes!",
+  "author": "Nintendo (sounds), babble (pack)",
+  "version": "1.0.0",
+  "categories": {
+    "ambient":  { "files": ["bacmusic.wav"],  "loop": true,  "volume": 0.08 },
+    "action":   { "files": ["walking.wav"],   "loop": false, "volume": 0.5 },
+    "read":     { "files": ["jump.wav"],      "loop": false, "volume": 0.4 },
+    "write":    { "files": ["hammer.wav"],    "loop": false, "volume": 0.5 },
+    "network":  { "files": ["jumpbar.wav"],   "loop": false, "volume": 0.4 },
+    "success":  { "files": ["win1.wav", "win2.wav"], "loop": false, "volume": 0.6 },
+    "warn":     { "files": ["howhigh.wav"],   "loop": false, "volume": 0.7 },
+    "error":    { "files": ["death.wav"],     "loop": false, "volume": 0.8 },
+    "meta":     { "files": ["itemget.wav"],   "loop": false, "volume": 0.4 }
+  }
+}

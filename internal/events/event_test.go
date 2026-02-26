@@ -165,11 +165,11 @@ func TestParseProgress(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if ev.Category != events.CategoryMeta {
-		t.Errorf("category = %q, want %q", ev.Category, events.CategoryMeta)
+	if ev.Category != events.CategoryInit {
+		t.Errorf("category = %q, want %q", ev.Category, events.CategoryInit)
 	}
-	if ev.Event != "progress" {
-		t.Errorf("event = %q, want %q", ev.Event, "progress")
+	if ev.Event != "session_start" {
+		t.Errorf("event = %q, want %q", ev.Event, "session_start")
 	}
 }
 
@@ -372,7 +372,7 @@ func TestParseProgressWithoutMessageNotSkipped(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if ev.Category != events.CategoryMeta {
-		t.Errorf("category = %q, want %q", ev.Category, events.CategoryMeta)
+	if ev.Category != events.CategoryInit {
+		t.Errorf("category = %q, want %q", ev.Category, events.CategoryInit)
 	}
 }

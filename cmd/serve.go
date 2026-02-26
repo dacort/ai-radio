@@ -35,7 +35,9 @@ func Execute() error {
 
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: babble <command>")
-		fmt.Println("  serve    Start the Babble server")
+		fmt.Println("  serve                  Start the Babble server")
+		fmt.Println("  packs                  List installed sound packs")
+		fmt.Println("  packs install <name>   Install a sound pack (donkeykong, pacman, spaceinvaders, frogger, asteroids)")
 		return nil
 	}
 
@@ -43,6 +45,8 @@ func Execute() error {
 	case "serve":
 		serveCmd.Parse(os.Args[2:])
 		return runServe(*port, *noOpen)
+	case "packs":
+		return runPacks(os.Args[2:])
 	default:
 		return fmt.Errorf("unknown command: %s", os.Args[1])
 	}

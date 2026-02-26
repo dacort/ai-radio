@@ -15,6 +15,7 @@
 
   /* Category colours */
   --col-ambient: #6b7280;
+  --col-init:    #f472b6;
   --col-action:  #f59e0b;
   --col-read:    #3b82f6;
   --col-write:   #10b981;
@@ -274,6 +275,7 @@ body {
 
 /* Category left-border colouring */
 .event-row.cat-ambient { border-left-color: var(--col-ambient); }
+.event-row.cat-init    { border-left-color: var(--col-init);    }
 .event-row.cat-action  { border-left-color: var(--col-action);  }
 .event-row.cat-read    { border-left-color: var(--col-read);    }
 .event-row.cat-write   { border-left-color: var(--col-write);   }
@@ -310,6 +312,7 @@ body {
 
 /* Per-category text colour on the category column */
 .cat-ambient .ev-category { color: var(--col-ambient); }
+.cat-init    .ev-category { color: var(--col-init);    }
 .cat-action  .ev-category { color: var(--col-action);  }
 .cat-read    .ev-category { color: var(--col-read);    }
 .cat-write   .ev-category { color: var(--col-write);   }
@@ -388,6 +391,7 @@ body {
 
 /* Category label colours */
 .cat-label-ambient { color: var(--col-ambient); }
+.cat-label-init    { color: var(--col-init);    }
 .cat-label-action  { color: var(--col-action);  }
 .cat-label-read    { color: var(--col-read);    }
 .cat-label-write   { color: var(--col-write);   }

@@ -31,6 +31,8 @@ const (
 	CategoryError Category = "error"
 	// CategoryMeta covers Task, session lifecycle, and progress events.
 	CategoryMeta Category = "meta"
+	// CategoryInit covers session start / hook initialization events.
+	CategoryInit Category = "init"
 )
 
 // ErrSkipEvent is returned by ParseLine for events that carry no useful
@@ -54,11 +56,12 @@ type BabbleEvent struct {
 
 // rawLine is the top-level envelope of every JSONL record.
 type rawLine struct {
-	Type      string          `json:"type"`
-	SessionID string          `json:"sessionId"`
-	Timestamp string          `json:"timestamp"`
-	Cwd       string          `json:"cwd"`
-	Message   *rawMessage     `json:"message"`
+	Type      string           `json:"type"`
+	Subtype   string           `json:"subtype"`
+	SessionID string           `json:"sessionId"`
+	Timestamp string           `json:"timestamp"`
+	Cwd       string           `json:"cwd"`
+	Message   *rawMessage      `json:"message"`
 	Data      *rawProgressData `json:"data"`
 }
 
@@ -167,6 +170,12 @@ func ParseLine(line []byte) (*BabbleEvent, error) {
 		if raw.Data != nil && raw.Data.Message != nil {
 			return nil, ErrSkipEvent
 		}
+		// Hook progress events signal session initialization.
+		if raw.Data != nil && raw.Data.Type == "hook_progress" {
+			ev.Category = CategoryInit
+			ev.Event = "session_start"
+			return ev, nil
+		}
 		ev.Category = CategoryMeta
 		ev.Event = "progress"
 		if raw.Data != nil && raw.Data.Type != "" {
@@ -175,8 +184,16 @@ func ParseLine(line []byte) (*BabbleEvent, error) {
 		return ev, nil
 
 	case "system":
+		if raw.Subtype == "compact_boundary" {
+			ev.Category = CategoryWarn
+			ev.Event = "compact"
+			return ev, nil
+		}
 		ev.Category = CategoryMeta
 		ev.Event = "system"
+		if raw.Subtype != "" {
+			ev.Detail = raw.Subtype
+		}
 		return ev, nil
 
 	default:

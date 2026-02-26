@@ -42,6 +42,11 @@ export class BabbleAudio {
 
     // Decoded audio buffer cache for sample-based packs.
     this._sampleCache = new Map();
+
+    /** Idle timeout in ms — ambient loops stop after this much silence. */
+    this.idleTimeoutMs = 30_000;
+    /** @type {number|null} Timer ID for the idle check. */
+    this._idleTimer = null;
   }
 
   // ---------------------------------------------------------------------------
@@ -77,7 +82,11 @@ export class BabbleAudio {
     // Pre-start ambient loop if defined.
     if (this.ctx && this.pack.categories?.ambient?.loop) {
       const catDef = this.pack.categories.ambient;
-      this.startLoop('ambient', catDef, this.getCategoryVolume('ambient', catDef.volume));
+      if (catDef.files?.length) {
+        this.playSample('ambient', catDef);
+      } else {
+        this.startLoop('ambient', catDef, this.getCategoryVolume('ambient', catDef.volume));
+      }
     }
   }
 
@@ -94,17 +103,54 @@ export class BabbleAudio {
     if (!this.ctx || !this.pack) return;
     if (this.mutedSessions.has(event.session)) return;
 
+    // Restart ambient loop if it was stopped due to idle timeout.
+    this._resumeAmbientIfNeeded();
+    this._resetIdleTimer();
+
     const category = event.category;
     const catDef = this.pack.categories?.[category];
     if (!catDef) return;
 
+    // For looping categories, skip if a loop is already running.
+    if (catDef.loop && this.activeLoops.has(category)) return;
+
     if (this.pack.synth || catDef.synth) {
-      // For looping categories the loop was already started; just let it run.
-      if (!catDef.loop) {
-        this.playSynth(category, catDef);
-      }
+      this.playSynth(category, catDef);
     } else if (catDef.files?.length) {
       this.playSample(category, catDef);
+    }
+  }
+
+  /**
+   * Sets the idle timeout in milliseconds. The ambient loop is stopped after
+   * this duration of inactivity and restarted when the next event arrives.
+   * @param {number} ms
+   */
+  setIdleTimeout(ms) {
+    this.idleTimeoutMs = ms;
+    this._resetIdleTimer();
+  }
+
+  /** Resets the idle timer. Called on every incoming event. */
+  _resetIdleTimer() {
+    if (this._idleTimer) clearTimeout(this._idleTimer);
+    if (this.idleTimeoutMs <= 0) return;
+    this._idleTimer = setTimeout(() => {
+      this._stopLoop('ambient');
+      this.activeLoops.delete('ambient');
+    }, this.idleTimeoutMs);
+  }
+
+  /** Restarts the ambient loop if the pack defines one and it's not running. */
+  _resumeAmbientIfNeeded() {
+    if (this.activeLoops.has('ambient')) return;
+    const catDef = this.pack?.categories?.ambient;
+    if (!catDef?.loop) return;
+
+    if (catDef.files?.length) {
+      this.playSample('ambient', catDef);
+    } else {
+      this.startLoop('ambient', catDef, this.getCategoryVolume('ambient', catDef.volume));
     }
   }
 
@@ -145,6 +191,26 @@ export class BabbleAudio {
         for (const ratio of intervals) {
           this._playSingleOscillator('sine', freq * ratio, duration, vol / intervals.length);
         }
+        break;
+      }
+
+      case 'breath': {
+        // Soft fade-in / fade-out "whoosh" — gentle ambient pulse.
+        const attackTime = duration * 0.4;
+        const releaseTime = duration * 0.6;
+        const osc = this.ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+
+        const gainNode = this.ctx.createGain();
+        gainNode.gain.setValueAtTime(0.001, now);
+        gainNode.gain.linearRampToValueAtTime(vol, now + attackTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gainNode);
+        gainNode.connect(this.masterGain);
+        osc.start(now);
+        osc.stop(now + duration + 0.01);
         break;
       }
 

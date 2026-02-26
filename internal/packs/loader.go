@@ -25,6 +25,7 @@ type CategorySound struct {
 // serialized to JSON.
 type Pack struct {
 	Name        string                   `json:"name"`
+	Slug        string                   `json:"slug"`
 	Description string                   `json:"description"`
 	Author      string                   `json:"author"`
 	Version     string                   `json:"version"`
@@ -54,6 +55,7 @@ func LoadPack(dir string) (*Pack, error) {
 		return nil, fmt.Errorf("packs: abs path for %s: %w", dir, err)
 	}
 	p.Dir = abs
+	p.Slug = filepath.Base(abs)
 
 	return &p, nil
 }
