@@ -131,6 +131,17 @@ async function populatePacks() {
       opt.textContent = 'Default';
       elPackSelect.appendChild(opt);
     }
+
+    // Restore persisted pack selection from config.
+    try {
+      const cfgRes = await fetch('/api/config');
+      if (cfgRes.ok) {
+        const cfg = await cfgRes.json();
+        if (cfg.activePack && elPackSelect.querySelector(`option[value="${cfg.activePack}"]`)) {
+          elPackSelect.value = cfg.activePack;
+        }
+      }
+    } catch (_) {}
   } catch (err) {
     console.warn('BabbleApp: failed to fetch packs:', err);
   }
@@ -141,6 +152,12 @@ function setupPackSelector() {
     const packName = elPackSelect.value;
     try {
       await audio.loadPack(packName);
+      // Persist selection to config.
+      fetch('/api/config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activePack: packName }),
+      }).catch(() => {});
     } catch (err) {
       console.warn('BabbleApp: failed to switch pack:', err);
     }

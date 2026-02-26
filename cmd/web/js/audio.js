@@ -106,7 +106,7 @@ export class BabbleAudio {
    * @param {string} packName
    */
   async loadPack(packName) {
-    this.stopAllLoops();
+    this.stopAllLoops({ immediate: true });
     this._sampleCache.clear();
 
     const res = await fetch(`/api/packs/${encodeURIComponent(packName)}/manifest`);
@@ -455,6 +455,426 @@ export class BabbleAudio {
         break;
       }
 
+      // ── Arcade synth sounds ────────────────────────────────
+
+      case 'arcade-coin': {
+        // Mario coin: fast upward frequency sweep on square wave.
+        const osc = this.ctx.createOscillator();
+        osc.type = 'square';
+        const g = this.ctx.createGain();
+        osc.frequency.setValueAtTime(523, now);
+        osc.frequency.setValueAtTime(659, now + 0.04);
+        osc.frequency.setValueAtTime(1047, now + 0.07);
+        g.gain.setValueAtTime(vol, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.connect(g);
+        g.connect(bus);
+        osc.start(now);
+        osc.stop(now + 0.15);
+        break;
+      }
+
+      case 'arcade-dot': {
+        // Pac-Man dot: alternating two-tone blip.
+        if (!this._arcadeDotToggle) this._arcadeDotToggle = false;
+        const dotFreq = this._arcadeDotToggle ? 196 : 164;
+        this._arcadeDotToggle = !this._arcadeDotToggle;
+        const osc = this.ctx.createOscillator();
+        osc.type = 'square';
+        const g = this.ctx.createGain();
+        g.gain.setValueAtTime(vol, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        osc.frequency.value = dotFreq;
+        osc.connect(g);
+        g.connect(bus);
+        osc.start(now);
+        osc.stop(now + 0.06);
+        break;
+      }
+
+      case 'arcade-laser': {
+        // Space Invaders descending blip.
+        const osc = this.ctx.createOscillator();
+        osc.type = 'square';
+        const g = this.ctx.createGain();
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.12);
+        g.gain.setValueAtTime(vol, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.connect(g);
+        g.connect(bus);
+        osc.start(now);
+        osc.stop(now + 0.12);
+        break;
+      }
+
+      case 'arcade-hit': {
+        // Enemy hit: noise burst + pitched thud.
+        // Noise burst
+        const noiseBuf = this.ctx.createBuffer(1, Math.ceil(this.ctx.sampleRate * 0.5), this.ctx.sampleRate);
+        const noiseData = noiseBuf.getChannelData(0);
+        let reg = 1;
+        for (let i = 0; i < noiseData.length; i++) {
+          const bit = (reg ^ (reg >> 1)) & 1;
+          reg = (reg >> 1) | (bit << 14);
+          noiseData[i] = bit ? 1 : -1;
+        }
+        const nSrc = this.ctx.createBufferSource();
+        nSrc.buffer = noiseBuf;
+        nSrc.loop = true;
+        const nFilt = this.ctx.createBiquadFilter();
+        nFilt.type = 'lowpass';
+        nFilt.frequency.value = 800;
+        const nGain = this.ctx.createGain();
+        nGain.gain.setValueAtTime(vol, now);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        nSrc.connect(nFilt);
+        nFilt.connect(nGain);
+        nGain.connect(bus);
+        nSrc.start(now);
+        nSrc.stop(now + 0.12);
+        // Pitched thud
+        const thud = this.ctx.createOscillator();
+        thud.type = 'triangle';
+        const tGain = this.ctx.createGain();
+        thud.frequency.setValueAtTime(120, now);
+        thud.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+        tGain.gain.setValueAtTime(vol * 0.8, now);
+        tGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        thud.connect(tGain);
+        tGain.connect(bus);
+        thud.start(now);
+        thud.stop(now + 0.1);
+        break;
+      }
+
+      case 'arcade-death': {
+        // Mario death: iconic descending bounce.
+        const pattern = [
+          [494, 0], [523, 0.06], [494, 0.12], [440, 0.20],
+          [392, 0.28], [330, 0.38], [294, 0.48], [220, 0.58],
+          [196, 0.70], [147, 0.82],
+        ];
+        const osc = this.ctx.createOscillator();
+        osc.type = 'square';
+        const g = this.ctx.createGain();
+        for (const [f, dt] of pattern) osc.frequency.setValueAtTime(f, now + dt);
+        g.gain.setValueAtTime(vol, now);
+        g.gain.setValueAtTime(vol, now + 0.55);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+        osc.connect(g);
+        g.connect(bus);
+        osc.start(now);
+        osc.stop(now + 1.15);
+        break;
+      }
+
+      case 'arcade-warp': {
+        // Warp pipe: descending chromatic noise sweep, then exit blip.
+        // Noise wash
+        const nBuf = this.ctx.createBuffer(1, Math.ceil(this.ctx.sampleRate * 0.5), this.ctx.sampleRate);
+        const nData = nBuf.getChannelData(0);
+        let r = 1;
+        for (let i = 0; i < nData.length; i++) {
+          const b = (r ^ (r >> 1)) & 1;
+          r = (r >> 1) | (b << 14);
+          nData[i] = b ? 1 : -1;
+        }
+        const nSrc = this.ctx.createBufferSource();
+        nSrc.buffer = nBuf;
+        nSrc.loop = true;
+        const nFilt = this.ctx.createBiquadFilter();
+        nFilt.type = 'lowpass';
+        nFilt.frequency.setValueAtTime(4000, now);
+        nFilt.frequency.exponentialRampToValueAtTime(200, now + 0.5);
+        const nGain = this.ctx.createGain();
+        nGain.gain.setValueAtTime(vol * 0.8, now);
+        nGain.gain.setValueAtTime(vol * 0.8, now + 0.4);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        nSrc.connect(nFilt);
+        nFilt.connect(nGain);
+        nGain.connect(bus);
+        nSrc.start(now);
+        nSrc.stop(now + 0.6);
+        // Chromatic descend
+        const chromatic = [523, 494, 466, 440, 415, 392, 370, 349, 330, 311, 294];
+        const osc = this.ctx.createOscillator();
+        osc.type = 'square';
+        const g = this.ctx.createGain();
+        for (let i = 0; i < chromatic.length; i++) osc.frequency.setValueAtTime(chromatic[i], now + i * 0.04);
+        g.gain.setValueAtTime(vol * 0.7, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        osc.connect(g);
+        g.connect(bus);
+        osc.start(now);
+        osc.stop(now + 0.5);
+        // Exit blip
+        const o2 = this.ctx.createOscillator();
+        o2.type = 'square';
+        const g2 = this.ctx.createGain();
+        o2.frequency.setValueAtTime(784, now + 0.65);
+        o2.frequency.setValueAtTime(1047, now + 0.72);
+        g2.gain.setValueAtTime(0.001, now);
+        g2.gain.setValueAtTime(vol * 0.7, now + 0.65);
+        g2.gain.exponentialRampToValueAtTime(0.001, now + 0.82);
+        o2.connect(g2);
+        g2.connect(bus);
+        o2.start(now + 0.65);
+        o2.stop(now + 0.82);
+        break;
+      }
+
+      case 'arcade-warning': {
+        // Zelda low-health beep: three quick blips.
+        [0, 0.18, 0.36].forEach(dt => {
+          const osc = this.ctx.createOscillator();
+          osc.type = 'square';
+          const g = this.ctx.createGain();
+          g.gain.setValueAtTime(vol, now + dt);
+          g.gain.exponentialRampToValueAtTime(0.001, now + dt + 0.1);
+          osc.frequency.value = 440;
+          osc.connect(g);
+          g.connect(bus);
+          osc.start(now + dt);
+          osc.stop(now + dt + 0.1);
+        });
+        break;
+      }
+
+      case 'arcade-powerup': {
+        // Ascending arpeggio — Metroid/Zelda item get.
+        const notes = [262, 330, 392, 523, 659, 784, 1047];
+        notes.forEach((f, i) => {
+          const osc = this.ctx.createOscillator();
+          osc.type = 'square';
+          const g = this.ctx.createGain();
+          g.gain.setValueAtTime(vol, now + i * 0.06);
+          g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.08);
+          osc.frequency.value = f;
+          osc.connect(g);
+          g.connect(bus);
+          osc.start(now + i * 0.06);
+          osc.stop(now + i * 0.06 + 0.1);
+        });
+        break;
+      }
+
+      case 'arcade-levelclear': {
+        // Classic 5-note fanfare with bass.
+        const phrase = [
+          [523, 0, 0.12], [523, 0.13, 0.12], [523, 0.26, 0.12],
+          [523, 0.39, 0.18], [415, 0.39, 0.18], [466, 0.58, 0.18],
+          [523, 0.77, 0.4],
+        ];
+        for (const [f, dt, dur] of phrase) {
+          const osc = this.ctx.createOscillator();
+          osc.type = 'square';
+          const g = this.ctx.createGain();
+          g.gain.setValueAtTime(vol * 0.8, now + dt);
+          g.gain.exponentialRampToValueAtTime(0.001, now + dt + dur);
+          osc.frequency.value = f;
+          osc.connect(g);
+          g.connect(bus);
+          osc.start(now + dt);
+          osc.stop(now + dt + dur + 0.02);
+        }
+        // Triangle bass
+        const bass = [[131, 0, 0.38], [104, 0.39, 0.36], [117, 0.58, 0.18], [131, 0.77, 0.5]];
+        for (const [f, dt, dur] of bass) {
+          const osc = this.ctx.createOscillator();
+          osc.type = 'triangle';
+          const g = this.ctx.createGain();
+          g.gain.setValueAtTime(vol * 0.7, now + dt);
+          g.gain.exponentialRampToValueAtTime(0.001, now + dt + dur);
+          osc.frequency.value = f;
+          osc.connect(g);
+          g.connect(bus);
+          osc.start(now + dt);
+          osc.stop(now + dt + dur + 0.02);
+        }
+        break;
+      }
+
+      case 'arcade-oneup': {
+        // 1-UP jingle: E5 G5 E6 C6 D6 G6.
+        const notes = [
+          [659, 0, 0.09], [784, 0.1, 0.09], [1319, 0.2, 0.09],
+          [1047, 0.3, 0.09], [1175, 0.4, 0.09], [1568, 0.5, 0.22],
+        ];
+        for (const [f, dt, dur] of notes) {
+          const osc = this.ctx.createOscillator();
+          osc.type = 'square';
+          const g = this.ctx.createGain();
+          g.gain.setValueAtTime(vol, now + dt);
+          g.gain.exponentialRampToValueAtTime(0.001, now + dt + dur);
+          osc.frequency.value = f;
+          osc.connect(g);
+          g.connect(bus);
+          osc.start(now + dt);
+          osc.stop(now + dt + dur + 0.02);
+        }
+        break;
+      }
+
+      case 'arcade-gameover': {
+        // Descending minor phrase with harmony.
+        const notes = [[392, 0, 0.3], [330, 0.35, 0.3], [294, 0.70, 0.3], [262, 1.05, 0.6]];
+        for (const [f, dt, dur] of notes) {
+          const osc = this.ctx.createOscillator();
+          osc.type = 'square';
+          const g = this.ctx.createGain();
+          g.gain.setValueAtTime(vol * 0.8, now + dt);
+          g.gain.exponentialRampToValueAtTime(0.001, now + dt + dur);
+          osc.frequency.value = f;
+          osc.connect(g);
+          g.connect(bus);
+          osc.start(now + dt);
+          osc.stop(now + dt + dur + 0.02);
+          // Harmony a 5th below
+          const osc2 = this.ctx.createOscillator();
+          osc2.type = 'triangle';
+          const g2 = this.ctx.createGain();
+          g2.gain.setValueAtTime(vol * 0.5, now + dt);
+          g2.gain.exponentialRampToValueAtTime(0.001, now + dt + dur);
+          osc2.frequency.value = f / 1.5;
+          osc2.connect(g2);
+          g2.connect(bus);
+          osc2.start(now + dt);
+          osc2.stop(now + dt + dur + 0.02);
+        }
+        break;
+      }
+
+      case 'arcade-texture': {
+        // Full arcade ambience: CRT hum, cooling fans, joystick clunks, cabinet resonance.
+        const masterNode = this.ctx.createGain();
+        masterNode.gain.setValueAtTime(vol, now);
+        masterNode.connect(bus);
+        const extras = [];
+
+        // ── CRT Monitor (15,734Hz scan + 60Hz power harmonics)
+        const scanOsc = this.ctx.createOscillator();
+        scanOsc.type = 'sine';
+        scanOsc.frequency.value = 15734;
+        const scanGain = this.ctx.createGain();
+        scanGain.gain.value = 0.12;
+        scanOsc.connect(scanGain);
+        scanGain.connect(masterNode);
+        scanOsc.start(now);
+        extras.push(scanOsc);
+
+        // Scan drift LFO
+        const scanLFO = this.ctx.createOscillator();
+        scanLFO.type = 'sine';
+        scanLFO.frequency.value = 0.03;
+        const scanLFOGain = this.ctx.createGain();
+        scanLFOGain.gain.value = 8;
+        scanLFO.connect(scanLFOGain);
+        scanLFOGain.connect(scanOsc.frequency);
+        scanLFO.start(now);
+        extras.push(scanLFO);
+
+        // 60Hz power hum + harmonics
+        for (const [hFreq, hVol] of [[60, 0.08], [120, 0.04], [180, 0.02]]) {
+          const h = this.ctx.createOscillator();
+          h.type = 'sine';
+          h.frequency.value = hFreq;
+          const hg = this.ctx.createGain();
+          hg.gain.value = hVol;
+          h.connect(hg);
+          hg.connect(masterNode);
+          h.start(now);
+          extras.push(h);
+        }
+
+        // ── Cooling Fans (3 bandpass-filtered noise sources)
+        const buildFan = (centerFreq, bladeHz, fanVol) => {
+          const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * 2, this.ctx.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+          const src = this.ctx.createBufferSource();
+          src.buffer = buf;
+          src.loop = true;
+          const bp = this.ctx.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.frequency.value = centerFreq;
+          bp.Q.value = 0.8;
+          const fg = this.ctx.createGain();
+          fg.gain.value = fanVol;
+          const lfo = this.ctx.createOscillator();
+          lfo.type = 'sine';
+          lfo.frequency.value = bladeHz;
+          const lg = this.ctx.createGain();
+          lg.gain.value = fanVol * 0.25;
+          lfo.connect(lg);
+          lg.connect(fg.gain);
+          src.connect(bp);
+          bp.connect(fg);
+          fg.connect(masterNode);
+          src.start(now);
+          lfo.start(now);
+          extras.push(src, lfo);
+        };
+        buildFan(320, 20, 0.10);
+        buildFan(680, 28, 0.06);
+        buildFan(180, 14, 0.05);
+
+        // ── Cabinet body resonance (83Hz + rattle)
+        const cabOsc = this.ctx.createOscillator();
+        cabOsc.type = 'sine';
+        cabOsc.frequency.value = 83;
+        const cabLFO = this.ctx.createOscillator();
+        cabLFO.type = 'sine';
+        cabLFO.frequency.value = 0.008;
+        const cabLFOGain = this.ctx.createGain();
+        cabLFOGain.gain.value = 1.2;
+        cabLFO.connect(cabLFOGain);
+        cabLFOGain.connect(cabOsc.frequency);
+        const cabGain = this.ctx.createGain();
+        cabGain.gain.value = 0.06;
+        cabOsc.connect(cabGain);
+        cabGain.connect(masterNode);
+        cabOsc.start(now);
+        cabLFO.start(now);
+        extras.push(cabOsc, cabLFO);
+
+        // Low rattle noise
+        const rattleBuf = this.ctx.createBuffer(1, this.ctx.sampleRate * 3, this.ctx.sampleRate);
+        const rd = rattleBuf.getChannelData(0);
+        for (let i = 0; i < rd.length; i++) rd[i] = Math.random() * 2 - 1;
+        const rattleSrc = this.ctx.createBufferSource();
+        rattleSrc.buffer = rattleBuf;
+        rattleSrc.loop = true;
+        const rattleLP = this.ctx.createBiquadFilter();
+        rattleLP.type = 'lowpass';
+        rattleLP.frequency.value = 120;
+        const rattleGain = this.ctx.createGain();
+        rattleGain.gain.value = 0.03;
+        rattleSrc.connect(rattleLP);
+        rattleLP.connect(rattleGain);
+        rattleGain.connect(masterNode);
+        rattleSrc.start(now);
+        extras.push(rattleSrc);
+
+        // ── Joystick clunks (Poisson-timed random microswitch thocks)
+        this._arcadeClunkBus = masterNode;
+        this._arcadeClunkRunning = true;
+        const scheduleClunk = () => {
+          if (!this._arcadeClunkRunning) return;
+          this._fireArcadeClunk();
+          const next = 400 + Math.random() * 3100;
+          this._arcadeClunkTimer = setTimeout(scheduleClunk, next);
+        };
+        this._arcadeClunkTimer = setTimeout(scheduleClunk, 800);
+
+        if (catDef.loop) {
+          // Use scanOsc as the "source" for stopLoop compatibility.
+          this.activeLoops.set(category, { source: scanOsc, gain: masterNode, extras });
+          return;
+        }
+        break;
+      }
+
       default:
         // Unknown synth type — fall back to sine.
         this._playSingleOscillator('sine', freq, duration, vol, bus);
@@ -486,6 +906,64 @@ export class BabbleAudio {
     gainNode.connect(destination);
     osc.start(now);
     osc.stop(now + duration + 0.01);
+  }
+
+  /**
+   * Fires a single joystick clunk for the arcade-texture ambient.
+   * LFSR noise burst through bandpass, with occasional button press follow-up.
+   */
+  _fireArcadeClunk() {
+    if (!this.ctx || !this._arcadeClunkBus) return;
+    const now = this.ctx.currentTime;
+    const bus = this._arcadeClunkBus;
+
+    const bufSize = Math.floor(this.ctx.sampleRate * 0.04);
+    const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    let reg = 0x7FFF;
+    for (let i = 0; i < bufSize; i++) {
+      const bit = ((reg >> 1) ^ reg) & 1;
+      reg = (reg >> 1) | (bit << 14);
+      data[i] = (reg & 1) ? 0.6 : -0.6;
+    }
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 800 + Math.random() * 600;
+    bp.Q.value = 2;
+    const env = this.ctx.createGain();
+    env.gain.setValueAtTime(0, now);
+    env.gain.linearRampToValueAtTime(0.15, now + 0.001);
+    env.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+    src.connect(bp);
+    bp.connect(env);
+    env.connect(bus);
+    src.start(now);
+    src.stop(now + 0.04);
+
+    // 30% chance of a button press follow-up
+    if (Math.random() < 0.3) {
+      const delay = (Math.random() * 60 + 20) / 1000;
+      const bBuf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * 0.02), this.ctx.sampleRate);
+      const bData = bBuf.getChannelData(0);
+      for (let i = 0; i < bData.length; i++) bData[i] = Math.random() * 2 - 1;
+      const bSrc = this.ctx.createBufferSource();
+      bSrc.buffer = bBuf;
+      const bBp = this.ctx.createBiquadFilter();
+      bBp.type = 'bandpass';
+      bBp.frequency.value = 2000 + Math.random() * 1000;
+      bBp.Q.value = 3;
+      const bEnv = this.ctx.createGain();
+      bEnv.gain.setValueAtTime(0, now + delay);
+      bEnv.gain.linearRampToValueAtTime(0.08, now + delay + 0.0005);
+      bEnv.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.018);
+      bSrc.connect(bBp);
+      bBp.connect(bEnv);
+      bEnv.connect(bus);
+      bSrc.start(now + delay);
+      bSrc.stop(now + delay + 0.025);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -585,9 +1063,9 @@ export class BabbleAudio {
   /**
    * Stops all active loops (called when switching packs or on cleanup).
    */
-  stopAllLoops() {
+  stopAllLoops({ immediate = false } = {}) {
     for (const category of this.activeLoops.keys()) {
-      this._stopLoop(category);
+      this._stopLoop(category, { immediate });
     }
     this.activeLoops.clear();
   }
@@ -596,16 +1074,23 @@ export class BabbleAudio {
    * Stops a single named loop.
    * @param {string} category
    */
-  _stopLoop(category) {
+  _stopLoop(category, { immediate = false } = {}) {
     if (category === 'ambient' && this._ambientState?.timeout) {
       clearTimeout(this._ambientState.timeout);
       this._ambientState = null;
     }
+    // Clean up arcade-texture clunk scheduler.
+    if (category === 'ambient' && this._arcadeClunkTimer) {
+      clearTimeout(this._arcadeClunkTimer);
+      this._arcadeClunkRunning = false;
+      this._arcadeClunkBus = null;
+    }
     const loop = this.activeLoops.get(category);
     if (!loop) return;
     try {
-      loop.gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.5);
-      const stopTime = this.ctx.currentTime + 0.51;
+      const fadeTime = immediate ? 0.05 : 0.5;
+      loop.gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + fadeTime);
+      const stopTime = this.ctx.currentTime + fadeTime + 0.01;
       if (loop.source.stop) loop.source.stop(stopTime);
       if (loop.extras) {
         for (const node of loop.extras) {

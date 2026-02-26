@@ -443,56 +443,84 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   Audio enable overlay
+   Audio enable overlay — arcade CRT aesthetic
    --------------------------------------------------------------------------- */
+
+@keyframes overlay-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes overlay-title-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
 
 #audio-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 17, 23, 0.92);
+  background: #0a0a0f;
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px
+  );
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 24px;
   z-index: 100;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
+  cursor: default;
 }
 
-#audio-overlay .overlay-icon {
-  font-size: 48px;
-  opacity: 0.9;
+/* CRT glow */
+#audio-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, rgba(0,229,255,0.03) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 #audio-overlay .overlay-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text);
+  font-family: 'IBM Plex Mono', var(--font-mono);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #00e5ff;
+  text-shadow: 0 0 20px rgba(0,229,255,0.5), 0 0 40px rgba(0,229,255,0.2);
+  animation: overlay-title-pulse 2s ease infinite;
 }
 
 #audio-overlay .overlay-sub {
-  font-size: 13px;
-  color: var(--text-muted);
+  font-family: 'IBM Plex Mono', var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #ffe600;
   text-align: center;
-  max-width: 280px;
-  line-height: 1.6;
+  animation: overlay-blink 1s step-end infinite;
 }
 
 #audio-overlay .overlay-btn {
   margin-top: 8px;
-  padding: 10px 28px;
-  background: var(--col-read);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 12px 36px;
+  background: none;
+  color: #00e5ff;
+  border: 2px solid rgba(0,110,122,0.8);
+  font-family: 'IBM Plex Mono', var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
   cursor: pointer;
-  font-family: var(--font-ui);
-  transition: opacity 0.15s;
+  text-shadow: 0 0 8px rgba(0,229,255,0.3);
+  transition: all 0.15s;
 }
 
 #audio-overlay .overlay-btn:hover {
-  opacity: 0.85;
+  border-color: #00e5ff;
+  box-shadow: 0 0 20px rgba(0,229,255,0.15), inset 0 0 20px rgba(0,229,255,0.05);
 }

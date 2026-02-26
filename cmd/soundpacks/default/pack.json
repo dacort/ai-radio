@@ -1,18 +1,19 @@
 {
   "name": "Default",
-  "description": "Built-in synthesized sounds",
+  "description": "Pure synth arcade sounds — coin collects, laser shots, warp pipes, and CRT ambience. No samples needed.",
   "author": "babble",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "synth": true,
   "categories": {
-    "ambient":  { "synth": "drone",  "freq": 110,  "duration": 0.5, "loop": true,  "volume": 0.08 },
-    "action":   { "synth": "click",  "freq": 800,  "duration": 0.05, "loop": false, "volume": 0.25 },
-    "read":     { "synth": "sine",   "freq": 440,  "duration": 0.08, "loop": false, "volume": 0.15 },
-    "write":    { "synth": "sine",   "freq": 523,  "duration": 0.12, "loop": false, "volume": 0.25 },
-    "network":  { "synth": "breath", "freq": 330,  "duration": 0.3,  "loop": false, "volume": 0.20 },
-    "success":  { "synth": "chord",  "freq": 523,  "duration": 0.4,  "loop": false, "volume": 0.50 },
-    "warn":     { "synth": "saw",    "freq": 330,  "duration": 0.3,  "loop": false, "volume": 0.50 },
-    "error":    { "synth": "noise",  "freq": 200,  "duration": 0.3,  "loop": false, "volume": 0.60 },
-    "meta":     { "synth": "click",  "freq": 660,  "duration": 0.04, "loop": false, "volume": 0.10 }
+    "ambient":  { "synth": "arcade-texture",    "loop": true,  "volume": 0.06 },
+    "init":     { "synth": "arcade-oneup",       "loop": false, "volume": 0.55 },
+    "action":   { "synth": "arcade-laser",       "loop": false, "volume": 0.25 },
+    "read":     { "synth": "arcade-dot",         "loop": false, "volume": 0.12 },
+    "write":    { "synth": "arcade-coin",        "loop": false, "volume": 0.25 },
+    "network":  { "synth": "arcade-powerup",     "loop": false, "volume": 0.20 },
+    "success":  { "synth": "arcade-hit",         "loop": false, "volume": 0.50 },
+    "warn":     { "synth": "arcade-warning",     "loop": false, "volume": 0.45 },
+    "error":    { "synth": "arcade-death",       "loop": false, "volume": 0.60 },
+    "meta":     { "synth": "arcade-dot",         "loop": false, "volume": 0.10 }
   }
 }
