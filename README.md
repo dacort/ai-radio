@@ -24,6 +24,15 @@ The Go server embeds the browser UI and the default sound pack as static assets.
 
 ## Quick start
 
+### macOS
+
+```bash
+brew install dacort/formulas/babble
+babble serve
+```
+
+### Elsewhere
+
 ```
 go install github.com/dacort/babble@latest
 babble serve
@@ -46,6 +55,47 @@ Opens `http://localhost:3333`. Start a Claude Code session and hear it come aliv
 | `meta`    | Task, session lifecycle, and progress events             |
 
 ## Sound packs
+
+Babble comes with a default, arcade-like synthesized sound pack. 
+
+If you want to truly relive your retro days, there's a few pre-built packs available to download.
+
+- To list installed and available packs
+
+```bash
+babble packs
+```
+
+- To install a pack (Donkey Kong is my fav)
+
+```bash
+babble packs install donkeykong
+```
+
+## Building your own
+
+### tl;dr
+
+Use Claude to build a sound pack for you!
+
+```
+Build me a custom babble soundpack. Search for sounds using the BBC Sound Effects API:
+
+curl 'https://sound-effects-api.bbcrewind.co.uk/api/sfx/search' \
+-H 'content-type: application/json' \
+-H 'origin: https://sound-effects.bbcrewind.co.uk' \
+--data-raw '{"criteria":{"from":0,"size":10,"query":"YOUR
+TERM","tags":null,"categories":null,"durations":null,"sortBy":null,"source":null}}'
+
+Download by ID: https://sound-effects-media.bbcrewind.co.uk/mp3/{id}.mp3
+
+Install to ~/.config/babble/soundpacks/<name>/ with a pack.json mapping these categories: ambient (looping), action, read, write, network,
+success, warn, error, meta. Use ffmpeg to trim and normalize. Add "crossfadeMs": 3000 to the ambient entry for smooth looping.
+
+My theme: [YOUR VIBE HERE]
+```
+
+### Details
 
 Custom packs live in `~/.config/babble/soundpacks/<pack-name>/`. Each pack contains a `pack.json` manifest.
 
